@@ -10,8 +10,6 @@ class Validate
     
     @rack_input['urls'].each do |url|
       return false unless 0 == (url =~ /#{URI::regexp(['http', 'https'])}/)
-
-      
     end
 
     return @status
