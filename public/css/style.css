@@ -1,0 +1,16 @@
+body>*{
+  clear: both;
+  float: left;
+}
+
+#json {
+  border: 1px solid gray;
+  border-radius: 3px;
+  overflow: hidden;
+  width: 70%;
+  min-width: 364px; 
+}
+
+label, button {
+  margin-top: 7px;
+}
