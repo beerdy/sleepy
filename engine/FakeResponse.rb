@@ -7,6 +7,7 @@ class FakeResponse
     @th = []
   end
   def start urls, params
+    # Debug
     console = params[:console]
     # max_time_request - In sec.
     max_time_request = params[:max_time_request]
@@ -36,9 +37,8 @@ class FakeResponse
     puts "\nRequests terminated." if console
 
     responses = Hash.new
-
     @th.each_with_index do |thread,(i)|
-      response = Hash.new
+      response = {}
 
       unless thread[:data_request].nil?
       begin
@@ -56,7 +56,7 @@ class FakeResponse
 
     if console
       puts "\nData prepared."
-      pp responses if console
+      pp responses
     end
 
     return processing(responses)
@@ -81,7 +81,7 @@ private
     responses.each do |key,hash|
       begin
         slept = hash[:data_request]['slept']
-        # If error @this not do
+        # If error this not do
         sum += slept
       rescue Exception => e
       end
@@ -98,5 +98,4 @@ private
     
     return data
   end
-
 end
