@@ -8,12 +8,11 @@ class FakeResponse
   end
   def start urls, params
     console = params[:console]
-
     # max_time_request - In sec.
     max_time_request = params[:max_time_request]
 
     # Waiting all requests by their end
-    @thr = Thread.new { Thread.stop } 
+    @waiting_th = Thread.new { Thread.stop } 
 
     semaphore = Mutex.new
 
@@ -32,7 +31,7 @@ class FakeResponse
     end
 
     # Waiting finished requests by (from front) max_time_request
-    @thr.join max_time_request
+    @waiting_th.join max_time_request
 
     puts "\nRequests terminated." if console
 
@@ -53,15 +52,14 @@ class FakeResponse
       end
 
       responses[i] = response
-
     end
 
-    puts "\nData prepared." if console
-
-    pp responses if console
+    if console
+      puts "\nData prepared."
+      pp responses if console
+    end
 
     return processing(responses)
-
   end
 
 private
@@ -71,7 +69,7 @@ private
       @th.each do |thread|
         thread.exit unless Thread.current==thread
       end
-      @thr.exit
+      @waiting_th.exit
     end
   end
 
