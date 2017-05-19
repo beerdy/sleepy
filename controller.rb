@@ -1,5 +1,4 @@
 class Controller
-  include FakeResponse
 
   def initialize env
     @env = env
@@ -11,6 +10,9 @@ class Controller
     end
 
     @validate = Validate.new(@rack_input)
+    # engine code
+    @fake_response = FakeResponse.new
+    #...
   end
 
   def index
@@ -27,7 +29,7 @@ class Controller
 
     urls = @rack_input['urls']
 
-    render 'dynamic', fake_response(urls, params)
+    render 'dynamic', @fake_response.start(urls, params)
   end
 
   def nopage

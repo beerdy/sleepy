@@ -1,34 +1,45 @@
 # encoding: UTF-8
 
-module FakeResponse
-  def fake_response urls, params
-
+class FakeResponse
+  def initialize
+    @count_responded = 0
+    @count_urls = 0
+    @th = []
+  end
+  def start urls, params
+    
     # For debug
     console = params[:console]
 
     # max_time_request - in sec.
     max_time_request = params[:max_time_request]
+    @waiting_thread = Thread.new do Thread.stop  end
 
-    th = []
+    semaphore = Mutex.new
 
-    urls.count.times do 
-      th << Thread.new do
+    @count_urls = urls.count
+    @count_urls.times do
+      @th << Thread.new do
         url = urls.pop
         timestamp = Time.now
 
         Thread.current[:data_request] = HTTPClient.get_content url
-     
         Thread.current[:time_request] = (Time.now - timestamp) * 1000.0
+
+        # Stop if queries finished
+        semaphore.synchronize do max_time_request
+        end
       end
     end
 
-    sleep max_time_request
+    # Client (front) waiting time
+    @waiting_thread.join max_time_request
 
     puts "\nRequests terminated." if console
 
     responses = Hash.new
 
-    th.each_with_index do |thread,(i)|
+    @th.each_with_index do |thread,(i)|
       response = Hash.new
 
       unless thread[:data_request].nil?
@@ -49,9 +60,20 @@ module FakeResponse
     puts "\nData prepared." if console
 
     pp responses if console
-    
+
     return processing(responses)
 
+  end
+
+private
+  def callback_terminate
+    @count_responded += 1
+    if @count_responded >= @count_urls
+      @th.each do |thread|
+        thread.exit unless Thread.current==thread
+      end
+      @waiting_thread.exit
+    end
   end
 
   def processing responses
@@ -62,7 +84,7 @@ module FakeResponse
     responses.each do |key,hash|
       begin
         slept = hash[:data_request]['slept']
-        # If error this not do
+        # If error @this not do
         sum += slept
       rescue Exception => e
       end
