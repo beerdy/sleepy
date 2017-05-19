@@ -36,7 +36,6 @@ function func(action) {
     } else {
       response.data = json['data'];
       response.sum = json['sum'];
-      if(json.errors != undefined && json.errors != null && json.errors != '' )
       response.errors = json['errors'];
     }
 

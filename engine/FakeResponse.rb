@@ -7,13 +7,13 @@ class FakeResponse
     @th = []
   end
   def start urls, params
-    
-    # For debug
     console = params[:console]
 
-    # max_time_request - in sec.
+    # max_time_request - In sec.
     max_time_request = params[:max_time_request]
-    @waiting_thread = Thread.new do Thread.stop  end
+
+    # Waiting all requests by their end
+    @thr = Thread.new { Thread.stop } 
 
     semaphore = Mutex.new
 
@@ -26,14 +26,13 @@ class FakeResponse
         Thread.current[:data_request] = HTTPClient.get_content url
         Thread.current[:time_request] = (Time.now - timestamp) * 1000.0
 
-        # Stop if queries finished
-        semaphore.synchronize do max_time_request
-        end
+        # Check finish all requests
+        semaphore.synchronize { callback_terminate }
       end
     end
 
-    # Client (front) waiting time
-    @waiting_thread.join max_time_request
+    # Waiting finished requests by (from front) max_time_request
+    @thr.join max_time_request
 
     puts "\nRequests terminated." if console
 
@@ -72,7 +71,7 @@ private
       @th.each do |thread|
         thread.exit unless Thread.current==thread
       end
-      @waiting_thread.exit
+      @thr.exit
     end
   end
 
